@@ -16,8 +16,8 @@ namespace Dapper
 
         private sealed class DapperRowMetaObject : System.Dynamic.DynamicMetaObject
         {
-            private static readonly MethodInfo getValueMethod = typeof(IDictionary<string, object>).GetProperty("Item").GetGetMethod();
-            private static readonly MethodInfo setValueMethod = typeof(DapperRow).GetMethod("SetValue", new Type[] { typeof(string), typeof(object) });
+            private static readonly MethodInfo getValueMethod = typeof(IDictionary<string, object>).GetProperty("Item")!.GetGetMethod()!;
+            private static readonly MethodInfo setValueMethod = typeof(DapperRow).GetMethod("SetValue", new Type[] { typeof(string), typeof(object) })!;
 
             public DapperRowMetaObject(
                 System.Linq.Expressions.Expression expression,
@@ -81,7 +81,7 @@ namespace Dapper
                 var parameters = new System.Linq.Expressions.Expression[]
                                      {
                                          System.Linq.Expressions.Expression.Constant(binder.Name),
-                                         value.Expression,
+                                         System.Linq.Expressions.Expression.Convert(value.Expression, typeof(object)),
                                      };
 
                 var callMethod = CallMethod(setValueMethod, parameters);
@@ -89,11 +89,10 @@ namespace Dapper
                 return callMethod;
             }
 
-            static readonly string[] s_nixKeys = new string[0];
             public override IEnumerable<string> GetDynamicMemberNames()
             {
                 if(HasValue && Value is IDictionary<string, object> lookup) return lookup.Keys;
-                return s_nixKeys;
+                return Array.Empty<string>();
             }
         }
     }
