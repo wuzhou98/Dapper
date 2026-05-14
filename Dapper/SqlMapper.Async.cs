@@ -503,6 +503,7 @@ namespace Dapper
                     ThrowZeroRows(row);
                 }
                 while (await reader.NextResultAsync(cancel).ConfigureAwait(false)) { /* ignore result sets after the first */ }
+                command.OnCompleted();
                 return result;
             }
             finally
@@ -1249,7 +1250,6 @@ namespace Dapper
             return Parse<T>(result);
         }
 
-#if NET5_0_OR_GREATER
         /// <summary>
         /// Execute a query asynchronously using <see cref="IAsyncEnumerable{dynamic}"/>.
         /// </summary>
@@ -1338,12 +1338,15 @@ namespace Dapper
                             try { cmd?.Cancel(); }
                             catch { /* don't spoil any existing exception */ }
                         }
+#if NET5_0_OR_GREATER
                         await reader.DisposeAsync();
+#else
+                        reader.Dispose();
+#endif
                     }
                     if (wasClosed) cnn.Close();
                 }
             }
         }
-#endif
     }
 }
